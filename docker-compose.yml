@@ -1,0 +1,40 @@
+services:
+
+  postgres:
+    container_name: postgres
+    image: postgres
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql/data
+    ports:
+      - "5433:5433"
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+
+  backend:
+    container_name: todo-telegram
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app_node
+    volumes:
+      - ./:/src/app
+    ports:
+      - "9229:9229"
+      - "8000:8000"
+    depends_on:
+      - postgres
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://user:password@postgres:5433/database?serverVersion=16.2
+      APP_PORT: ${APP_PORT}
+      API_DOC: 'TRUE'
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+    
+    command: "npm run start:dev"
